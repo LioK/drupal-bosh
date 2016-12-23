@@ -1,0 +1,65 @@
+---
+name: drupal-mysql-bosh
+director_uuid: #INSERT BOSH DIRECTOR UUID
+
+releases:
+- {name: drupal-mysql, version: latest}
+
+networks:
+- name: default
+  type: manual
+  subnets:
+  - range: #INSERT CIDR OF YOUR PRIVAT NET
+    reserved: [] #INSERT A LIST OF IPS
+    gateway: #INSERT GATEWAY IP
+    cloud_properties:
+      net_id: #INSERT GATEWAY ID
+
+resource_pools:
+- name: default
+  network: default
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: 3312.5
+  cloud_properties:
+    instance_type: m1.small
+    security_groups: [bosh, default]
+
+disk_pools:
+- name: default
+  disk_size: 2048
+
+compilation:
+  workers: 2
+  network: default
+  reuse_compilation_vms: true
+  cloud_properties:
+    instance_type: m1.small
+
+update:
+  canaries: 1
+  max_in_flight: 10
+  canary_watch_time: 1000-30000
+  update_watch_time: 1000-30000
+
+jobs:
+  - name: mysql
+    instances: 1
+    templates:
+    - {name: mysql, release: drupal-mysql}
+    persistent_disk: 2048
+    resource_pool: default
+    networks:
+    - name: vk_net
+
+properties:
+  openstack:
+    auth_url: #OPENSTACK AUTH URL
+    username: #USERNAME
+    api_key: #PASSWORD
+    project: #PROJECT
+    domain: #OPENSTACK DOMAIN
+    default_key_name: bosh
+    default_security_groups: [default]
+    private_key: #PATH TO BOSH KEY
+

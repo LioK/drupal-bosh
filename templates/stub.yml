@@ -1,0 +1,13 @@
+---
+meta:
+  environment: openstack
+  dns_root: 8.8.8.8
+  network_name: vk_net
+  security_groups:
+    - bosh
+
+director_uuid: PLACEHOLDER-DIRECTOR-UUID
+
+releases:
+  - name: drupal-mysql
+    version: latest

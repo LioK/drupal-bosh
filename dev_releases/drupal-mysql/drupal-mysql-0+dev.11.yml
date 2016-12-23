@@ -1,0 +1,34 @@
+---
+packages:
+- name: mysqlclient
+  version: ecd5d8790062a875da448f347948bd7f21126cdf
+  fingerprint: ecd5d8790062a875da448f347948bd7f21126cdf
+  sha1: f521777a2f38301e483e2a60f32b34a508155a64
+  dependencies: []
+- name: php5
+  version: 6bde43b0b4faf95009b0e7d66e9af789432e50d1
+  fingerprint: 6bde43b0b4faf95009b0e7d66e9af789432e50d1
+  sha1: b19cb3afc7068e59f3e94abe96f5f5125aca982a
+  dependencies:
+  - apache2
+  - mysql
+  - mysqlclient
+- name: apache2
+  version: e0e5ce2f023e4326e4302f91ce2144600a184318
+  fingerprint: e0e5ce2f023e4326e4302f91ce2144600a184318
+  sha1: 05073b01a3cd6358b3ced36687a7d0d2945d9695
+  dependencies: []
+- name: mysql
+  version: 811ac83e60f960c4049f15274054f851453202f9
+  fingerprint: 811ac83e60f960c4049f15274054f851453202f9
+  sha1: 39fddfd074bdb8a2babd1353a298aaf94b15a215
+  dependencies: []
+jobs:
+- name: mysql
+  version: 47ed326ed029cbefa7484b2434db74fe5df1e1aa
+  fingerprint: 47ed326ed029cbefa7484b2434db74fe5df1e1aa
+  sha1: a74d5db1aae8979768897e63aacb873b32e68066
+commit_hash: f34209ee
+uncommitted_changes: true
+name: drupal-mysql
+version: 0+dev.11

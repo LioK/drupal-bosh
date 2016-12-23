@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -e # exit immediately if a simple command exits with a non-zero status
+set -u # report the usage of uninitialized variables
+
+# Setup env vars and folders for the webapp_ctl script
+source /var/vcap/jobs/mysql/helpers/ctl_setup.sh 'mysql'
+
+export LANG=en_US.UTF-8
+
+PIDFILE=$RUN_DIR/mysqld.pid
+CONF_DIR=/var/vcap/jobs/mysql/config
+MY_LD_FILE=/etc/ld.so.conf.d/mysql.conf
+
+SERVER=/var/vcap/packages/mysql/libexec/mysql.server
+SOCKET=/var/vcap/sys/run/mysql/mysqld.sock
+
+case $1 in
+
+  start)
+    touch /var/vcap/sys/log/mysql/install.log
+    sudo chmod +w /var/vcap/sys/log/mysql/install.log
+    ILOG=/var/vcap/sys/log/mysql/install.log
+
+    # set the system wide LD path for mysql libraries
+    echo "/var/vcap/packages/mysqlclient/lib/mysql" > $MY_LD_FILE
+    echo "/var/vcap/packages/mysql/lib/mysql" >> $MY_LD_FILE
+    /sbin/ldconfig
+
+    $SERVER start $CONF_DIR/my.cnf
+
+    
+
+    echo "creating database with name drupaldb" >> $ILOG 2>&1
+    mysql -u root --password='drupal' -S $SOCKET -e "CREATE DATABASE drupaldb;" mysql >> $ILOG 2>&1
+
+    echo "creating user with name drupal" >> $ILOG 2>&1
+    mysql -u root --password='drupal' -S $SOCKET -e "CREATE USER drupal IDENTIFIED BY 'drupal';" mysql >> $ILOG 2>&1
+
+    echo "granting privileges to drupal on database drupaldb" >> $ILOG 2>&1
+    mysql -u root --password='drupal' -S $SOCKET -e "GRANT ALL PRIVILEGES ON drupaldb.* TO drupal WITH GRANT OPTION;" mysql >> $ILOG 2>&1
+
+    # link libphp into apache
+    if [ ! -f /var/vcap/packages/apache2/modules/libphp5.so ]; then
+      ln -s /var/vcap/packages/php5/modules/libphp5.so \
+        /var/vcap/packages/apache2/modules/libphp5.so
+    fi
+
+    # ugly way to install shared library dependency
+    if [ -f /etc/redhat-release ]; then
+      # Install for CentOS stemcells.
+      # We first check if it's installed to prevent an
+      # an over-eager yum from contacting the Internet.
+      rpm -qi php-gd > /dev/null || yum install -y php-gd drush
+    elif [ -f /etc/lsb-release ]; then
+      # install for Ubuntu stemcells
+      sudo apt-get -y install php5-gd drush >> $ILOG 2>&1
+    fi
+
+    /var/vcap/packages/apache2/bin/apachectl -f /var/vcap/jobs/mysql/config/httpd.conf -k start >> $ILOG 2>&1
+
+    cd /var/vcap/packages/apache2 >> $ILOG 2>&1
+    sudo rm -rf /var/vcap/packages/apache2/htdocs
+    sudo drush dl drupal --drupal-project-rename=htdocs -y >> $ILOG 2>&1
+    cd /var/vcap/packages/apache2/htdocs
+    sudo drush site-install standard --db-url=mysql://drupal:drupal@localhost/drupaldb --site-name=altoros --account-name=drupal --account-pass=drupal -y >> $ILOG 2>&1
+    chown -R www-data:www-data /var/vcap/packages/apache2/htdocs >> $ILOG 2>&1
+
+    ;;
+
+  stop)
+    $SERVER stop $CONF_DIR/my.cnf
+
+    ;;
+  *)
+    echo "Usage: mysql_ctl {start|stop}"
+
+    ;;
+
+esac
+exit 0
