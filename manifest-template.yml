@@ -50,7 +50,7 @@ jobs:
     persistent_disk: 2048
     resource_pool: default
     networks:
-    - name: vk_net
+    - name: default
 
 properties:
   openstack:
