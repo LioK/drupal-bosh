@@ -52,14 +52,3 @@ jobs:
     networks:
     - name: default
 
-properties:
-  openstack:
-    auth_url: #OPENSTACK AUTH URL
-    username: #USERNAME
-    api_key: #PASSWORD
-    project: #PROJECT
-    domain: #OPENSTACK DOMAIN
-    default_key_name: bosh
-    default_security_groups: [default]
-    private_key: #PATH TO BOSH KEY
-
